@@ -12,11 +12,13 @@ import { getCurrentUser } from "@/actions/onboarding";
 import { redirect } from "next/navigation";
 
 export default async function VerificationPage() {
-  // Get complete user profile
   const user = await getCurrentUser();
 
-  // If already verified, redirect to dashboard
-  if (user?.verificationStatus === "VERIFIED") {
+  if (!user || user.role !== "DOCTOR") {
+    redirect("/onboarding");
+  }
+
+  if (user.verificationStatus === "VERIFIED") {
     redirect("/doctor");
   }
 

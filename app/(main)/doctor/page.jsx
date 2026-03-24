@@ -92,6 +92,14 @@ import DoctorAppointmentsList from "./_components/appointment-list";
 export default async function DoctorDashboardPage() {
   const user = await getCurrentUser();
 
+  if (!user || user.role !== "DOCTOR") {
+    redirect("/onboarding");
+  }
+
+  if (user.verificationStatus !== "VERIFIED") {
+    redirect("/doctor/verification");
+  }
+
   const [appointmentsData, availabilityData, earningsData, payoutsData] =
     await Promise.all([
       getDoctorAppointments(),
@@ -99,16 +107,6 @@ export default async function DoctorDashboardPage() {
       getDoctorEarnings(),
       getDoctorPayouts(),
     ]);
-
-  //   // Redirect if not a doctor
-  if (user?.role !== "DOCTOR") {
-    redirect("/onboarding");
-  }
-
-  // If already verified, redirect to dashboard
-  if (user?.verificationStatus !== "VERIFIED") {
-    redirect("/doctor/verification");
-  }
 
   return (
     <Tabs

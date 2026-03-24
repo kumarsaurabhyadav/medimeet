@@ -171,9 +171,6 @@ export async function getPendingPayouts() {
       },
     });
 
-    console.log("Fetched pending payouts:", pendingPayouts.length);
-    console.dir(pendingPayouts, { depth: null });
-
     return { payouts: pendingPayouts };
   } catch (error) {
     console.error("Failed to fetch pending payouts:", error);

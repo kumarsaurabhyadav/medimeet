@@ -52,14 +52,11 @@ export default function VideoCall({ sessionId, token }) {
     console.log({ appId, sessionId, token });
 
     try {
-      // Initialize the session
-      sessionRef.current = window.OT.initSession(appId, sessionId);
+      const session = window.OT.initSession(appId, sessionId);
+      sessionRef.current = session;
 
-      // Subscribe to new streams
-      sessionRef.current.on("streamCreated", (event) => {
-        console.log(event, "New stream created");
-
-        sessionRef.current.subscribe(
+      session.on("streamCreated", (event) => {
+        session.subscribe(
           event.stream,
           "subscriber",
           {
@@ -67,64 +64,57 @@ export default function VideoCall({ sessionId, token }) {
             width: "100%",
             height: "100%",
           },
-          (error) => {
-            if (error) {
+          (err) => {
+            if (err) {
               toast.error("Error connecting to other participant's stream");
             }
           }
         );
       });
 
-      // Handle session events
-      sessionRef.current.on("sessionConnected", () => {
-        setIsConnected(true);
-        setIsLoading(false);
-
-        // THIS IS THE FIX - Initialize publisher AFTER session connects
-        publisherRef.current = window.OT.initPublisher(
-          "publisher", // This targets the div with id="publisher"
-          {
-            insertMode: "replace", // Change from "append" to "replace"
-            width: "100%",
-            height: "100%",
-            publishAudio: isAudioEnabled,
-            publishVideo: isVideoEnabled,
-          },
-          (error) => {
-            if (error) {
-              console.error("Publisher error:", error);
-              toast.error("Error initializing your camera and microphone");
-            } else {
-              console.log(
-                "Publisher initialized successfully - you should see your video now"
-              );
-            }
-          }
-        );
-      });
-
-      sessionRef.current.on("sessionDisconnected", () => {
+      session.on("sessionDisconnected", () => {
         setIsConnected(false);
       });
 
-      // Connect to the session
-      sessionRef.current.connect(token, (error) => {
-        if (error) {
-          toast.error("Error connecting to video session");
-        } else {
-          // Publish your stream AFTER connecting
-          if (publisherRef.current) {
-            sessionRef.current.publish(publisherRef.current, (error) => {
-              if (error) {
-                console.log("Error publishing stream:", error);
-                toast.error("Error publishing your stream");
-              } else {
-                console.log("Stream published successfully");
-              }
-            });
+      const publisher = window.OT.initPublisher(
+        "publisher",
+        {
+          insertMode: "replace",
+          width: "100%",
+          height: "100%",
+          publishAudio: isAudioEnabled,
+          publishVideo: isVideoEnabled,
+        },
+        (publisherError) => {
+          if (publisherError) {
+            console.error("Publisher error:", publisherError);
+            toast.error("Error initializing your camera and microphone");
+            setIsLoading(false);
+            return;
           }
+
+          publisherRef.current = publisher;
+
+          session.connect(token, (connectError) => {
+            if (connectError) {
+              toast.error("Error connecting to video session");
+              setIsLoading(false);
+              return;
+            }
+
+            session.publish(publisher, (publishError) => {
+              setIsLoading(false);
+              if (publishError) {
+                toast.error("Error publishing your stream");
+                return;
+              }
+              setIsConnected(true);
+            });
+          });
         }
-      });
+      );
+
+      publisherRef.current = publisher;
     } catch (error) {
       toast.error("Failed to initialize video call");
       setIsLoading(false);
