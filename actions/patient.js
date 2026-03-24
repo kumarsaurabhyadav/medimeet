@@ -12,7 +12,7 @@ export async function getPatientAppointments() {
   }
 
   try {
-    const user = await db.user.findUnique({
+    const user = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "PATIENT",

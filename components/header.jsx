@@ -62,7 +62,7 @@ const Header=async()=> {
             )}
 
             {/* Patient Links */}
-            {User?.role === "PATIENT" && (
+            {user?.role === "PATIENT" && (
               <Link href="/appointments">
                 <Button
                   variant="outline"

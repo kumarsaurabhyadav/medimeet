@@ -202,7 +202,7 @@ export async function approvePayout(formData) {
     });
 
     // Find the payout request
-    const payout = await db.payout.findUnique({
+    const payout = await db.payout.findFirst({
       where: {
         id: payoutId,
         status: "PROCESSING",

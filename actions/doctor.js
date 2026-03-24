@@ -16,7 +16,7 @@ export async function setAvailabilitySlots(formData) {
 
   try {
     // Get the doctor
-    const doctor = await db.user.findUnique({
+    const doctor = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "DOCTOR",
@@ -49,20 +49,11 @@ export async function setAvailabilitySlots(formData) {
 
     // If slots exist, delete them all (we're replacing them)
     if (existingSlots.length > 0) {
-      // Don't delete slots that already have appointments
-      const slotsWithNoAppointments = existingSlots.filter(
-        (slot) => !slot.appointment
-      );
-
-      if (slotsWithNoAppointments.length > 0) {
-        await db.availability.deleteMany({
-          where: {
-            id: {
-              in: slotsWithNoAppointments.map((slot) => slot.id),
-            },
-          },
-        });
-      }
+      await db.availability.deleteMany({
+        where: {
+          doctorId: doctor.id,
+        },
+      });
     }
 
     // Create new availability slot
@@ -94,7 +85,7 @@ export async function getDoctorAvailability() {
   }
 
   try {
-    const doctor = await db.user.findUnique({
+    const doctor = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "DOCTOR",
@@ -132,7 +123,7 @@ export async function getDoctorAppointments() {
   }
 
   try {
-    const doctor = await db.user.findUnique({
+    const doctor = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "DOCTOR",
@@ -292,7 +283,7 @@ export async function addAppointmentNotes(formData) {
   }
 
   try {
-    const doctor = await db.user.findUnique({
+    const doctor = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "DOCTOR",
@@ -311,7 +302,7 @@ export async function addAppointmentNotes(formData) {
     }
 
     // Verify the appointment belongs to this doctor
-    const appointment = await db.appointment.findUnique({
+    const appointment = await db.appointment.findFirst({
       where: {
         id: appointmentId,
         doctorId: doctor.id,
@@ -351,7 +342,7 @@ export async function markAppointmentCompleted(formData) {
   }
 
   try {
-    const doctor = await db.user.findUnique({
+    const doctor = await db.user.findFirst({
       where: {
         clerkUserId: userId,
         role: "DOCTOR",
@@ -369,7 +360,7 @@ export async function markAppointmentCompleted(formData) {
     }
 
     // Find the appointment
-    const appointment = await db.appointment.findUnique({
+    const appointment = await db.appointment.findFirst({
       where: {
         id: appointmentId,
         doctorId: doctor.id, // Ensure appointment belongs to this doctor

@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { setUserRole } from "@/actions/onboarding";
+import { doctorFormSchema } from "@/lib/schema";
 import { SPECIALTIES } from "@/lib/specialities";
 import useFetch from "@/hooks/use-fetch";
 import { useEffect } from "react";
@@ -34,7 +35,7 @@ export default function OnboardingPage() {
   // Custom hook for user role server action
   const { loading, data, fn: submitUserRole } = useFetch(setUserRole);
 
-  // React Hook Form setup
+  // React Hook Form setup with Zod validation
   const {
     register,
     handleSubmit,
@@ -42,6 +43,7 @@ export default function OnboardingPage() {
     setValue,
     watch,
   } = useForm({
+    resolver: zodResolver(doctorFormSchema),
     defaultValues: {
       specialty: "",
       experience: undefined,
@@ -268,4 +270,3 @@ export default function OnboardingPage() {
     );
   }
 }
-
